@@ -1508,11 +1508,8 @@ function confirmarExclusaoAmostra(idx) {
 }
 
 // ── PDF DO ADMIN ──
-function gerarPDFAmostraAdmin(idx) {
-    var a = sbAmostrasCache[parseInt(idx)];
-    if (!a) return;
-    // Montar estrutura de dados igual à do formulário
-    var dados = {
+function montarDadosAmostra(a) {
+    return {
         numero: (a.numero_amostra||'').split(' ')[0] || '?',
         horaEnvio: (a.numero_amostra||'').split(' ').slice(1).join(' ') || '',
         dataHora: a.data_solicitacao || new Date().toLocaleString('pt-BR'),
@@ -1530,10 +1527,41 @@ function gerarPDFAmostraAdmin(idx) {
         itensCatalogo:  (a.itens_catalogo||[]).map(function(it){ return {cod:it.cod||it.codigo,cor:it.cor,qtd:it.qtd||it.quantidade}; }),
         observacoes: a.observacoes||''
     };
+}
+
+async function gerarPDFAmostraAdmin(idx) {
+    var a = sbAmostrasCache[parseInt(idx)];
+    if (!a) return;
+    var dados  = montarDadosAmostra(a);
     var versao = a.versao || 1;
-    var nome = 'AMOSTRA ' + (a.bitrix_deal_id||'') + ' V' + versao + '.pdf';
-    try { gerarPDFDados(dados, nome); }
-    catch(e) { alert('Erro ao gerar PDF: ' + e.message); }
+    var dealId = a.bitrix_deal_id || '';
+    var nome   = 'AMOSTRA ' + dealId + ' V' + versao + '.pdf';
+    var opcoes = {dealId: dealId, versao: versao};
+
+    document.getElementById('loadingText').textContent = 'Gerando PDF...';
+    document.getElementById('loadingOverlay').classList.add('active');
+    try {
+        var pdfUri = gerarPDFDados(dados, '__RETURN_DATA_URI__', opcoes);
+        var pdfB64 = extrairBase64(pdfUri);
+
+        // Download local
+        var link = document.createElement('a');
+        link.href = pdfUri;
+        link.download = nome;
+        link.click();
+
+        // Anexar ao Bitrix se tiver dealId
+        if (dealId) {
+            document.getElementById('loadingText').textContent = 'Enviando PDF ao Bitrix...';
+            try {
+                await uploadArquivosCampo(parseInt(dealId), CAMPO_PRE_PEDIDO, [{nome: nome, base64: pdfB64}]);
+            } catch(eBx) { console.warn('[PDF ADMIN] Bitrix upload:', eBx.message); }
+        }
+        document.getElementById('loadingOverlay').classList.remove('active');
+    } catch(e) {
+        document.getElementById('loadingOverlay').classList.remove('active');
+        alert('Erro ao gerar PDF: ' + e.message);
+    }
 }
 
 // ── EDIÇÃO DE AMOSTRA ──
@@ -1652,7 +1680,7 @@ async function salvarEdicaoAmostra() {
             observacoes: upd.observacoes
         };
         var nomePDFEdit = 'AMOSTRA ' + (a.bitrix_deal_id||'') + ' V' + novaVersao + '.pdf';
-        var pdfUri  = gerarPDFDados(dados, '__RETURN_DATA_URI__');
+        var pdfUri  = gerarPDFDados(dados, '__RETURN_DATA_URI__', {dealId: a.bitrix_deal_id||'', versao: novaVersao});
         var pdfB64  = extrairBase64(pdfUri);
 
         // 3. Upload para Bitrix sobrepondo versão anterior
