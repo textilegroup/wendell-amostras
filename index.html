@@ -997,7 +997,8 @@ function gerarXLS() {
     a.click();
 }
 
-function gerarPDFDados(dados, nomeArquivo) {
+function gerarPDFDados(dados, nomeArquivo, opcoes) {
+    opcoes = opcoes || {};
     var jsPDF = window.jspdf.jsPDF;
     var doc = new jsPDF('p','mm','a4');
     var pageW = doc.internal.pageSize.getWidth();
@@ -1023,10 +1024,15 @@ function gerarPDFDados(dados, nomeArquivo) {
     doc.text('Wendell Global Interlining', margin+34, 23);
 
     doc.setFontSize(16); doc.setFont('helvetica','bold');
-    doc.text('ID DO PEDIDO', pageW-margin, 14, {align:'right'});
+    doc.text('ID DO PEDIDO', pageW-margin, 12, {align:'right'});
     doc.setFontSize(10); doc.setFont('helvetica','normal');
     doc.setTextColor(200,210,220);
-    doc.text(dados.numero+' '+dados.horaEnvio, pageW-margin, 23, {align:'right'});
+    doc.text(dados.numero+' '+(dados.horaEnvio||''), pageW-margin, 20, {align:'right'});
+    if (opcoes.dealId) {
+        doc.setFontSize(9); doc.setFont('helvetica','bold');
+        doc.setTextColor(255,200,200);
+        doc.text('Deal ' + opcoes.dealId + '  v' + (opcoes.versao||1), pageW-margin, 28, {align:'right'});
+    }
 
     y = 44;
     var colW = (pageW-margin*2-6)/2;
@@ -1196,13 +1202,11 @@ async function enviarAmostra() {
     if (cnpjVal.length < 14) { alert('Preencha o CNPJ completo antes de enviar.'); document.getElementById('cnpjCliente').focus(); return; }
 
     try {
-        document.getElementById('loadingText').textContent = 'Gerando PDF...';
+        document.getElementById('loadingText').textContent = 'Coletando dados...';
         document.getElementById('loadingOverlay').classList.add('active');
 
         var dados = coletarDados();
-        var pdfUri = gerarPDFDados(dados,'__RETURN_DATA_URI__');
-        ultimoPdfDataUri = pdfUri;
-        var nomePDF = 'amostra_'+dados.numero.replace(/\//g,'')+'_'+dados.horaEnvio.replace(/:/g,'')+'.pdf';
+        // PDF será gerado após obter o dealId (para incluir ID Bitrix e versão)
 
         document.getElementById('loadingText').textContent = 'Criando solicitação no Bitrix...';
 
@@ -1246,13 +1250,20 @@ async function enviarAmostra() {
         var dealId = dealResult && dealResult.item && dealResult.item.id;
         if (!dealId) throw new Error('Deal não criado');
 
+        // Gerar PDF com ID Bitrix e versão 1
+        document.getElementById('loadingText').textContent = 'Gerando PDF...';
+        var versaoPDF = 1;
+        var nomePDF   = 'AMOSTRA ' + dealId + ' V' + versaoPDF + '.pdf';
+        var pdfUri    = gerarPDFDados(dados, '__RETURN_DATA_URI__', {dealId: dealId, versao: versaoPDF});
+        ultimoPdfDataUri = pdfUri;
+
         document.getElementById('loadingText').textContent = 'Enviando PDF...';
         await uploadArquivosCampo(dealId, CAMPO_PRE_PEDIDO, [{nome:nomePDF, base64:extrairBase64(pdfUri)}]);
 
         // Gerar planilha Excel
         document.getElementById('loadingText').textContent = 'Gerando planilha Excel...';
         var excelB64 = gerarExcelBase64(dados);
-        var nomeExcel = 'amostra_' + dados.numero.replace(/\//g,'') + '_' + dados.horaEnvio.replace(/:/g,'') + '.xlsx';
+        var nomeExcel = 'AMOSTRA ' + dealId + ' V' + versaoPDF + '.xlsx';
 
         document.getElementById('loadingText').textContent = 'Enviando documentos...';
         // XLS → campo Documentos ufCrm29_1780928967898
