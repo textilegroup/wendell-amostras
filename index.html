@@ -445,6 +445,50 @@
     </div>
 </div>
 
+<!-- PAINEL EDIÇÃO AMOSTRA (overlay) -->
+<div id="editAmostraOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:30000;justify-content:center;align-items:flex-start;padding:16px;overflow-y:auto">
+    <div style="background:white;border-radius:10px;max-width:680px;width:100%;margin:auto;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.25)">
+        <div style="background:#a01228;color:white;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
+            <h3 id="editAmostraTitulo" style="margin:0;font-size:15px">Editar Amostra</h3>
+            <button onclick="fecharEdicaoAmostra()" style="background:none;border:none;color:white;font-size:22px;cursor:pointer;line-height:1">&#10005;</button>
+        </div>
+        <div style="padding:16px">
+            <!-- Campos gerais -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+                <div><label style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;display:block;margin-bottom:3px">Vendedor</label><input id="eaVend" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:4px;font-size:13px"></div>
+                <div><label style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;display:block;margin-bottom:3px">Código</label><input id="eaCod" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:4px;font-size:13px"></div>
+                <div><label style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;display:block;margin-bottom:3px">Forma de Envio</label>
+                    <select id="eaEnvio" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:4px;font-size:13px">
+                        <option value="Correios">Correios</option><option value="Transportadora">Transportadora</option>
+                    </select>
+                </div>
+                <div><label style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;display:block;margin-bottom:3px">Transportadora</label><input id="eaTransp" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:4px;font-size:13px"></div>
+                <div style="grid-column:1/-1"><label style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;display:block;margin-bottom:3px">Endereço Entrega</label><input id="eaEndereco" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:4px;font-size:13px"></div>
+                <div style="grid-column:1/-1"><label style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;display:block;margin-bottom:3px">Aos Cuidados de</label><input id="eaAC" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:4px;font-size:13px"></div>
+                <div style="grid-column:1/-1"><label style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;display:block;margin-bottom:3px">Observações</label><textarea id="eaObs" rows="2" style="width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:4px;font-size:13px;font-family:inherit;resize:vertical"></textarea></div>
+            </div>
+            <!-- Itens Saquinho -->
+            <div style="font-size:12px;font-weight:700;color:#a01228;border-bottom:2px solid #a01228;padding-bottom:4px;margin-bottom:8px">ITENS — SAQUINHO (30cm x 40cm)</div>
+            <div id="eaSaquinhoList" style="max-height:180px;overflow-y:auto;border:1px solid #eee;border-radius:5px;margin-bottom:12px"></div>
+            <div style="font-size:12px;font-weight:700;color:#a01228;border-bottom:2px solid #a01228;padding-bottom:4px;margin-bottom:8px">ITENS — PACOTE (1m x 1,5m)</div>
+            <div id="eaPacoteList" style="max-height:180px;overflow-y:auto;border:1px solid #eee;border-radius:5px;margin-bottom:12px"></div>
+            <div style="font-size:12px;font-weight:700;color:#a01228;border-bottom:2px solid #a01228;padding-bottom:4px;margin-bottom:8px">CATÁLOGO — Quantidade</div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:12px">
+                <span style="font-size:13px;flex:1">Catálogo completo Wendell Global Interlining</span>
+                <div style="display:flex;align-items:center;border:1px solid #ddd;border-radius:5px;overflow:hidden">
+                    <button type="button" class="qtd-btn" onclick="var i=document.getElementById('eaCatQtd');var v=Math.max(0,(parseInt(i.value)||0)-1);i.value=v||''">-</button>
+                    <input type="number" id="eaCatQtd" class="qtd-num" min="0" placeholder="0" style="width:40px;text-align:center;border:none;padding:4px">
+                    <button type="button" class="qtd-btn" onclick="var i=document.getElementById('eaCatQtd');i.value=(parseInt(i.value)||0)+1">+</button>
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:6px">
+                <button onclick="salvarEdicaoAmostra()" style="background:#a01228;color:white;border:none;padding:11px 20px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;flex:1">💾 Salvar e gerar novo PDF</button>
+                <button onclick="fecharEdicaoAmostra()" style="background:#718096;color:white;border:none;padding:11px 16px;border-radius:6px;font-size:13px;cursor:pointer">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 var BX_WEBHOOK  = 'https://fiorella.bitrix24.com.br/rest/1/1kalsjfoz13rhglc/';
 var BX_TYPE_ID  = 1070;
@@ -1401,7 +1445,8 @@ async function buscarAmostras() {
                 '<div style="font-size:12px;color:#555;margin-bottom:3px"><b>Envio:</b> '+(a.forma_envio||'-')+(a.transportadora?' — '+a.transportadora:'')+' &nbsp;|&nbsp; <b>Itens:</b> '+itTotal+' produto(s)</div>' +
                 (a.bitrix_deal_id?'<div style="font-size:12px;margin-bottom:6px"><b>Deal:</b> <a href="https://fiorella.bitrix24.com.br/crm/type/1070/details/'+a.bitrix_deal_id+'/" target="_blank" style="color:#a01228">#'+a.bitrix_deal_id+' ↗</a></div>':'')+
                 '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
-                '<button class="btn btn-enviar" style="padding:5px 10px;font-size:11px" data-amidx="'+idx+'" onclick="verDetalheAmostra(this.dataset.amidx)">🔍 Ver Detalhes</button>' +
+                '<button class="btn btn-pdf" style="padding:5px 10px;font-size:11px" data-amidx="'+idx+'" onclick="gerarPDFAmostraAdmin(this.dataset.amidx)">📄 PDF</button>' +
+                '<button class="btn btn-enviar" style="padding:5px 10px;font-size:11px" data-amidx="'+idx+'" onclick="abrirEdicaoAmostra(this.dataset.amidx)">✏️ Editar</button>' +
                 '<button class="btn" style="padding:5px 10px;font-size:11px;background:#505152;color:white" data-amidx="'+idx+'" onclick="confirmarExclusaoAmostra(this.dataset.amidx)">🗑️ Excluir</button>' +
                 '</div></div>';
         }).join('');
@@ -1449,6 +1494,174 @@ function confirmarExclusaoAmostra(idx) {
     if (senha !== SENHA_EXCLUIR) { alert('Senha incorreta.'); return; }
     if (!confirm('Confirmar exclusão permanente?')) return;
     sbFetch('amostras?id=eq.'+a.id,'DELETE').then(function(){ buscarAmostras(); }).catch(function(e){ alert('Erro: '+e.message); });
+}
+
+// ── PDF DO ADMIN ──
+function gerarPDFAmostraAdmin(idx) {
+    var a = sbAmostrasCache[parseInt(idx)];
+    if (!a) return;
+    // Montar estrutura de dados igual à do formulário
+    var dados = {
+        numero: (a.numero_amostra||'').split(' ')[0] || '?',
+        horaEnvio: (a.numero_amostra||'').split(' ').slice(1).join(' ') || '',
+        dataHora: a.data_solicitacao || new Date().toLocaleString('pt-BR'),
+        representante: { nome: a.vendedor_nome||'-', codigo: a.vendedor_codigo||'-' },
+        cliente: { nome: a.cliente_nome||'-', cnpj: a.cliente_cnpj||'-', aosCuidados: a.aos_cuidados_de||'' },
+        pedido: {
+            formaEnvio: a.forma_envio||'-', transportadora: a.transportadora||'',
+            enderecoEntrega: a.endereco_entrega||'',
+            saquinhoAtivo: !!(a.itens_saquinho && a.itens_saquinho.length),
+            pacoteAtivo:   !!(a.itens_pacote   && a.itens_pacote.length),
+            catalogoAtivo: !!(a.itens_catalogo  && a.itens_catalogo.length)
+        },
+        itensSaquinho:  (a.itens_saquinho||[]).map(function(it){ return {cod:it.cod||it.codigo,cor:it.cor,qtd:it.qtd||it.quantidade}; }),
+        itensPacote:    (a.itens_pacote||[]).map(function(it){   return {cod:it.cod||it.codigo,cor:it.cor,qtd:it.qtd||it.quantidade}; }),
+        itensCatalogo:  (a.itens_catalogo||[]).map(function(it){ return {cod:it.cod||it.codigo,cor:it.cor,qtd:it.qtd||it.quantidade}; }),
+        observacoes: a.observacoes||''
+    };
+    var versao = a.versao || 1;
+    var nome = 'AMOSTRA ' + (a.bitrix_deal_id||'') + ' V' + versao + '.pdf';
+    try { gerarPDFDados(dados, nome); }
+    catch(e) { alert('Erro ao gerar PDF: ' + e.message); }
+}
+
+// ── EDIÇÃO DE AMOSTRA ──
+var _amostraEditIdx = null;
+
+function abrirEdicaoAmostra(idx) {
+    var a = sbAmostrasCache[parseInt(idx)];
+    if (!a) return;
+    _amostraEditIdx = parseInt(idx);
+    document.getElementById('editAmostraTitulo').textContent = 'Editar Amostra ' + (a.numero_amostra||'') + ' v' + (a.versao||1);
+    document.getElementById('eaVend').value    = a.vendedor_nome||'';
+    document.getElementById('eaCod').value     = a.vendedor_codigo||'';
+    document.getElementById('eaEnvio').value   = a.forma_envio||'Correios';
+    document.getElementById('eaTransp').value  = a.transportadora||'';
+    document.getElementById('eaEndereco').value= a.endereco_entrega||'';
+    document.getElementById('eaAC').value      = a.aos_cuidados_de||'';
+    document.getElementById('eaObs').value     = a.observacoes||'';
+    // Catálogo
+    var catItens = a.itens_catalogo||[];
+    document.getElementById('eaCatQtd').value = catItens.length > 0 ? (catItens[0].qtd||catItens[0].quantidade||'') : '';
+    // Listas saquinho e pacote
+    renderizarListaEdit('eaSaquinhoList', a.itens_saquinho||[], 'saquinho');
+    renderizarListaEdit('eaPacoteList',   a.itens_pacote||[],   'pacote');
+    document.getElementById('editAmostraOverlay').style.display = 'flex';
+}
+
+function renderizarListaEdit(containerId, itensAtivos, formato) {
+    var grade = getGrade(formato);
+    var qtdMap = {};
+    itensAtivos.forEach(function(it){ qtdMap[it.cod||it.codigo] = it.qtd||it.quantidade||0; });
+    var container = document.getElementById(containerId);
+    container.innerHTML = grade.map(function(p) {
+        var qtd = qtdMap[p.cod] || 0;
+        return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-bottom:1px solid #f5f5f5">' +
+            '<span style="font-size:11px;font-weight:700;color:#2d3748;width:120px;flex-shrink:0">' + p.cod + '</span>' +
+            '<span style="font-size:11px;color:#718096;flex:1">' + p.cor + '</span>' +
+            '<div style="display:flex;align-items:center;border:1px solid #ddd;border-radius:4px;overflow:hidden">' +
+            '<button type="button" style="background:#f4f4f4;border:none;width:24px;height:24px;font-size:15px;cursor:pointer" onclick="var i=this.nextElementSibling;i.value=Math.max(0,(parseInt(i.value)||0)-1)">-</button>' +
+            '<input type="number" min="0" value="' + (qtd||'') + '" placeholder="0" ' +
+            'data-cod="' + p.cod.replace(/"/g,'') + '" data-fmt="' + formato + '" ' +
+            'style="width:36px;text-align:center;border:none;font-size:12px;padding:2px">' +
+            '<button type="button" style="background:#f4f4f4;border:none;width:24px;height:24px;font-size:15px;cursor:pointer" onclick="var i=this.previousElementSibling;i.value=(parseInt(i.value)||0)+1">+</button>' +
+            '</div></div>';
+    }).join('');
+}
+
+function coletarItensEdit(containerId) {
+    var itens = [];
+    document.querySelectorAll('#' + containerId + ' input[data-cod]').forEach(function(inp) {
+        var qtd = parseInt(inp.value)||0;
+        if (qtd > 0) {
+            var cod = inp.dataset.cod;
+            var grade = getGrade(inp.dataset.fmt);
+            var prod = grade.find(function(p){ return p.cod === cod; }) || {cod:cod, cor:''};
+            itens.push({cod: prod.cod, cor: prod.cor, qtd: qtd});
+        }
+    });
+    return itens;
+}
+
+function fecharEdicaoAmostra() {
+    document.getElementById('editAmostraOverlay').style.display = 'none';
+    _amostraEditIdx = null;
+}
+
+async function salvarEdicaoAmostra() {
+    if (_amostraEditIdx === null) return;
+    var a = sbAmostrasCache[_amostraEditIdx];
+    if (!a) return;
+
+    var novaVersao = (a.versao || 1) + 1;
+    var itensSaq = coletarItensEdit('eaSaquinhoList');
+    var itensPac = coletarItensEdit('eaPacoteList');
+    var catQtd   = parseInt(document.getElementById('eaCatQtd').value)||0;
+    var itensCat = catQtd > 0 ? [{cod:'CATALOGO COMPLETO', cor:'Todos os produtos', qtd:catQtd}] : [];
+
+    var upd = {
+        vendedor_nome:    document.getElementById('eaVend').value,
+        vendedor_codigo:  document.getElementById('eaCod').value,
+        forma_envio:      document.getElementById('eaEnvio').value,
+        transportadora:   document.getElementById('eaTransp').value,
+        endereco_entrega: document.getElementById('eaEndereco').value,
+        aos_cuidados_de:  document.getElementById('eaAC').value,
+        observacoes:      document.getElementById('eaObs').value,
+        itens_saquinho: itensSaq,
+        itens_pacote:   itensPac,
+        itens_catalogo: itensCat,
+        versao: novaVersao,
+        updated_at: new Date().toISOString(),
+        historico: (a.historico||[]).concat([{data:new Date().toISOString(), acao:'editado', versao:novaVersao}])
+    };
+
+    document.getElementById('loadingText').textContent = 'Salvando edição...';
+    document.getElementById('loadingOverlay').classList.add('active');
+    try {
+        // 1. Atualizar Supabase
+        await sbFetch('amostras?id=eq.' + a.id, 'PATCH', upd);
+
+        // 2. Gerar novo PDF
+        var dados = {
+            numero: (a.numero_amostra||'').split(' ')[0]||'?',
+            horaEnvio: (a.numero_amostra||'').split(' ').slice(1).join(' ')||'',
+            dataHora: new Date().toLocaleString('pt-BR'),
+            representante: {nome: upd.vendedor_nome, codigo: upd.vendedor_codigo},
+            cliente: {nome: a.cliente_nome||'-', cnpj: a.cliente_cnpj||'-', aosCuidados: upd.aos_cuidados_de},
+            pedido: {
+                formaEnvio: upd.forma_envio, transportadora: upd.transportadora,
+                enderecoEntrega: upd.endereco_entrega,
+                saquinhoAtivo: itensSaq.length > 0,
+                pacoteAtivo:   itensPac.length > 0,
+                catalogoAtivo: itensCat.length > 0
+            },
+            itensSaquinho: itensSaq,
+            itensPacote:   itensPac,
+            itensCatalogo: itensCat,
+            observacoes: upd.observacoes
+        };
+        var nomePDFEdit = 'AMOSTRA ' + (a.bitrix_deal_id||'') + ' V' + novaVersao + '.pdf';
+        var pdfUri  = gerarPDFDados(dados, '__RETURN_DATA_URI__');
+        var pdfB64  = extrairBase64(pdfUri);
+
+        // 3. Upload para Bitrix sobrepondo versão anterior
+        if (a.bitrix_deal_id) {
+            document.getElementById('loadingText').textContent = 'Enviando PDF ao Bitrix...';
+            try {
+                await uploadArquivosCampo(parseInt(a.bitrix_deal_id), CAMPO_PRE_PEDIDO, [{nome: nomePDFEdit, base64: pdfB64}]);
+            } catch(eBx) { console.warn('[EDIT AM] Bitrix PDF:', eBx.message); }
+        }
+
+        // Atualizar cache local
+        sbAmostrasCache[_amostraEditIdx] = Object.assign({}, a, upd);
+        document.getElementById('loadingOverlay').classList.remove('active');
+        fecharEdicaoAmostra();
+        alert('Amostra atualizada! PDF v' + novaVersao + ' enviado ao Bitrix.');
+        buscarAmostras();
+    } catch(e) {
+        document.getElementById('loadingOverlay').classList.remove('active');
+        alert('Erro ao salvar: ' + e.message);
+    }
 }
 
 function verDetalheAmostra(idx) {
