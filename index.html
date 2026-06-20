@@ -84,7 +84,7 @@
         .btn-admin:hover{background:#2d3748}
         .btn-limpar{background:#718096;color:white}
         .btn-limpar:hover{background:#4a5568}
-        .btn-pdf{background:#2d3748;color:white;display:none}
+        .btn-pdf{background:#2d3748;color:white}
         .btn-pdf:hover{background:#1a202c}
         .btn-add-item{background:#888;color:white;border:none;padding:10px 15px;border-radius:5px;cursor:pointer;font-size:13px;font-weight:600;width:100%;margin-top:10px;transition:background .2s}
         .btn-add-item:hover{background:#666}
@@ -326,8 +326,8 @@
     <div class="actions">
         <button type="button" class="btn btn-admin" onclick="abrirModalAdmin()">ADMIN</button>
         <button type="button" class="btn btn-limpar" onclick="limparFormulario()">LIMPAR</button>
-        <button type="button" class="btn btn-pdf" id="btnGerarPDF" onclick="gerarPDF()">GERAR PDF</button>
-        <button type="button" class="btn btn-pdf" id="btnGerarXLS" onclick="gerarXLS()" style="background:#1d6f42">GERAR XLS</button>
+        <button type="button" class="btn btn-pdf" id="btnGerarPDF" onclick="gerarPDF()" style="display:none">GERAR PDF</button>
+        <button type="button" class="btn btn-pdf" id="btnGerarXLS" onclick="gerarXLS()" style="background:#1d6f42;display:none">GERAR XLS</button>
         <button type="button" class="btn btn-enviar" onclick="enviarAmostra()">ENVIAR</button>
     </div>
 
