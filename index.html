@@ -588,16 +588,13 @@ async function uploadArquivosCampo(dealId, campo, arquivos) {
 var _gradeCache = {};
 
 function getGrade(formato) {
-    if (_gradeCache[formato]) return _gradeCache[formato];
-    // Fallback localStorage enquanto não carregou do banco
-    var salvo = localStorage.getItem('grade_' + formato);
-    if (salvo) { try { return JSON.parse(salvo); } catch(e) {} }
-    return PRODUTOS_DEFAULT;
+    return _gradeCache[formato] || PRODUTOS_DEFAULT;
 }
 
 function setGrade(formato, lista) {
     _gradeCache[formato] = lista;
-    localStorage.setItem('grade_' + formato, JSON.stringify(lista));
+    // localStorage opcional — ignorar se bloqueado
+    try { localStorage.setItem('grade_' + formato, JSON.stringify(lista)); } catch(e) {}
 }
 
 async function carregarGradesSb() {
@@ -609,10 +606,8 @@ async function carregarGradesSb() {
             var data = await sbFetch('amostras?select=grade_' + fmt + '&grade_' + fmt + '=not.is.null&order=created_at.desc&limit=1');
             if (data && data.length > 0 && data[0]['grade_' + fmt]) {
                 _gradeCache[fmt] = data[0]['grade_' + fmt];
-                localStorage.setItem('grade_' + fmt, JSON.stringify(_gradeCache[fmt]));
             } else {
-                // Usar localStorage ou default
-                _gradeCache[fmt] = getGrade(fmt);
+                _gradeCache[fmt] = PRODUTOS_DEFAULT;
             }
         }
         console.log('[GRADES] Carregadas do Supabase');
@@ -671,8 +666,8 @@ function salvarGrade(formato) {
 
 function restaurarGradeDefault(formato) {
     if (!confirm('Restaurar a grade padrão do ' + capitalize(formato) + '? As alterações serão perdidas.')) return;
-    localStorage.removeItem('grade_' + formato);
     delete _gradeCache[formato];
+    try { localStorage.removeItem('grade_' + formato); } catch(e) {}
     document.getElementById('grade'+capitalize(formato)).value = gradeParaTexto(PRODUTOS_DEFAULT);
     setGrade(formato, PRODUTOS_DEFAULT);
     renderizarLista(formato);
@@ -1799,13 +1794,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Carregar grades do Supabase e renderizar listas
     carregarGradesSb();
 
-    // Limpar localStorage antigo
-    try {
-        var ams=JSON.parse(localStorage.getItem('amostras')||'[]');
-        var alt=false;
-        ams.forEach(function(p){ if(p.documentos){p.documentos=p.documentos.map(function(d){if(d.dados){delete d.dados;alt=true;}return d;});} });
-        if(alt) localStorage.setItem('amostras',JSON.stringify(ams));
-    } catch(e) {}
+    // localStorage não utilizado — dados no Supabase
 });
 </script>
 </body>
