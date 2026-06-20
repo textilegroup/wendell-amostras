@@ -1504,6 +1504,20 @@ function confirmarExclusaoAmostra(idx) {
 }
 
 // ── PDF DO ADMIN ──
+// Buscar dados frescos do Supabase para garantir versão atual
+async function buscarAmostraAtualizada(a) {
+    try {
+        var data = await sbFetch('amostras?id=eq.' + a.id + '&limit=1');
+        if (data && data.length > 0) {
+            // Atualizar cache
+            var idx = sbAmostrasCache.findIndex(function(x){ return x.id === a.id; });
+            if (idx >= 0) sbAmostrasCache[idx] = data[0];
+            return data[0];
+        }
+    } catch(e) { console.warn('[SB] Busca atualizada:', e.message); }
+    return a; // fallback: usar cache
+}
+
 function montarDadosAmostra(a) {
     return {
         numero: (a.numero_amostra||'').split(' ')[0] || '?',
@@ -1526,17 +1540,22 @@ function montarDadosAmostra(a) {
 }
 
 async function gerarPDFAmostraAdmin(idx) {
-    var a = sbAmostrasCache[parseInt(idx)];
-    if (!a) return;
-    var dados  = montarDadosAmostra(a);
-    var versao = a.versao || 1;
-    var dealId = a.bitrix_deal_id || '';
-    var nome   = 'AMOSTRA ' + dealId + ' V' + versao + '.pdf';
-    var opcoes = {dealId: dealId, versao: versao};
+    var aCached = sbAmostrasCache[parseInt(idx)];
+    if (!aCached) return;
 
-    document.getElementById('loadingText').textContent = 'Gerando PDF...';
+    document.getElementById('loadingText').textContent = 'Carregando versão atual...';
     document.getElementById('loadingOverlay').classList.add('active');
     try {
+        // Buscar versão mais atual do Supabase
+        var a = await buscarAmostraAtualizada(aCached);
+        var dados  = montarDadosAmostra(a);
+        var versao = a.versao || 1;
+        var dealId = a.bitrix_deal_id || '';
+        var nome   = 'AMOSTRA ' + dealId + ' V' + versao + '.pdf';
+        var opcoes = {dealId: dealId, versao: versao};
+
+        document.getElementById('loadingText').textContent = 'Gerando PDF v' + versao + '...';
+        try {
         var pdfUri = gerarPDFDados(dados, '__RETURN_DATA_URI__', opcoes);
         var pdfB64 = extrairBase64(pdfUri);
 
@@ -1554,24 +1573,32 @@ async function gerarPDFAmostraAdmin(idx) {
             } catch(eBx) { console.warn('[PDF ADMIN] Bitrix upload:', eBx.message); }
         }
         document.getElementById('loadingOverlay').classList.remove('active');
+        } catch(eInner) {
+            document.getElementById('loadingOverlay').classList.remove('active');
+            alert('Erro ao gerar PDF: ' + eInner.message);
+        }
     } catch(e) {
         document.getElementById('loadingOverlay').classList.remove('active');
-        alert('Erro ao gerar PDF: ' + e.message);
+        alert('Erro ao carregar amostra: ' + e.message);
     }
 }
 
 // ── EXCEL DO ADMIN ──
 async function gerarXLSAmostraAdmin(idx) {
-    var a = sbAmostrasCache[parseInt(idx)];
-    if (!a) return;
-    var dados   = montarDadosAmostra(a);
-    var versao  = a.versao || 1;
-    var dealId  = a.bitrix_deal_id || '';
-    var nome    = 'AMOSTRA ' + dealId + ' V' + versao + '.xlsx';
+    var aCached = sbAmostrasCache[parseInt(idx)];
+    if (!aCached) return;
 
-    document.getElementById('loadingText').textContent = 'Gerando Excel...';
+    document.getElementById('loadingText').textContent = 'Carregando versão atual...';
     document.getElementById('loadingOverlay').classList.add('active');
     try {
+        var a      = await buscarAmostraAtualizada(aCached);
+        var dados  = montarDadosAmostra(a);
+        var versao = a.versao || 1;
+        var dealId = a.bitrix_deal_id || '';
+        var nome   = 'AMOSTRA ' + dealId + ' V' + versao + '.xlsx';
+
+        document.getElementById('loadingText').textContent = 'Gerando Excel v' + versao + '...';
+        try {
         var xlsB64 = gerarExcelBase64(dados);
 
         // Download local
@@ -1593,9 +1620,13 @@ async function gerarXLSAmostraAdmin(idx) {
             } catch(eBx) { console.warn('[XLS ADMIN] Bitrix:', eBx.message); }
         }
         document.getElementById('loadingOverlay').classList.remove('active');
+        } catch(eInner) {
+            document.getElementById('loadingOverlay').classList.remove('active');
+            alert('Erro ao gerar Excel: ' + eInner.message);
+        }
     } catch(e) {
         document.getElementById('loadingOverlay').classList.remove('active');
-        alert('Erro ao gerar Excel: ' + e.message);
+        alert('Erro ao carregar amostra: ' + e.message);
     }
 }
 
